@@ -33,6 +33,7 @@ class Monkeyman_Rewrite_Analyzer
 	{
 		$this->base_file = $base_file;
 		$this->plugin_basename = plugin_basename( $this->base_file );
+		add_action( 'admin_head', array( &$this, 'admin_head' ) );
 		add_action( 'init', array( &$this, 'init' ) );
 		add_action( 'admin_menu', array( &$this, 'admin_menu' ) );
 		add_filter( 'plugin_action_links_' . $this->plugin_basename, array( &$this, 'plugin_action_links' ) );
@@ -42,6 +43,16 @@ class Monkeyman_Rewrite_Analyzer
 	{
 		load_plugin_textdomain( $this->gettext_domain, null, dirname( $this->plugin_basename ) . '/languages/' );
 	}
+
+	public function admin_head()
+	{
+		$screen = get_current_screen();
+
+		$screen->add_help_tab([
+			'content' => $this->contextual_help($screen)
+		]);
+
+	}
 	
 	public function admin_menu()
 	{
@@ -49,7 +60,7 @@ class Monkeyman_Rewrite_Analyzer
 		add_action( 'admin_print_styles-' . $this->page_hook, array( &$this, 'admin_print_styles' ) );
 		add_action( 'admin_print_scripts-' . $this->page_hook, array( &$this, 'admin_print_scripts' ) );
 		
-		add_filter( 'contextual_help', array( &$this, 'contextual_help' ), 10, 3 );
+		// add_filter( 'contextual_help', , 10, 3 );
 	}
 	
 	public function admin_print_styles()
@@ -236,9 +247,11 @@ class Monkeyman_Rewrite_Analyzer
 		return $cleaned_url_parts;
 	}
 	
-	public function contextual_help( $contextual_help, $screen_id, $screen )
+	public function contextual_help( $screen )
 	{
-		if ( $this->page_hook == $screen_id ) {
+		$contextual_help = '';
+		
+		if ( $this->page_hook == $screen->id ) {
 			$gettext_domain = $this->gettext_domain;
 			ob_start();
 			include( dirname( $this->base_file ) . '/ui/rewrite-analyzer-help.php' );
